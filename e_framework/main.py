@@ -1,4 +1,5 @@
 import quopri
+from .requests import GetRequests, PostRequests
 
 
 class PageNotFound404:
@@ -16,6 +17,19 @@ class Framework:
 
         if not path.endswith('/'):
             path = f'{path}/'
+
+        request = {}
+        method = environ['REQUEST_METHOD']
+        request['method'] = method
+
+        if method == 'POST':
+            data = PostRequests().get_request_params(environ)
+            request['data'] = data
+            print(f'Получен POST-запрос: {Framework.decode_value(data)}')
+        if method == 'GET':
+            request_params = GetRequests().get_request_params(environ)
+            request['request_params'] = request_params
+            print(f'Параметры GET-запроса: {request_params}')
 
         if path in self.routes_lst:
             view = self.routes_lst[path]
