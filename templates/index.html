@@ -1,6 +1,6 @@
 ﻿{% extends "base.html" %}
 {% block title %}
-	Клинка "Лечим-Калечим"
+	Клиники "Лечим-Калечим"
 {% endblock %}
 {% block style %}
 	{% include "inc-style.html" %}
@@ -9,5 +9,18 @@
 	{% include "inc-menu.html" %}
 {% endblock %}
 {% block body %}
-	{% include "inc-index-body.html" %}
+	<div>
+		<a href="/create-location/">Создать новый район</a>
+	</div>
+	<div>
+		<h1>Список существующих районов</h1>
+		<ul>
+			{% for item in objects_list %}
+				<li>
+					{{item.name}}: <span>количество клиник: {{item.clinics_count()}}</span>
+					<a href="/clinics-list/?id={{item.id}}">Показать клиники</a>
+				</li>
+			{% endfor %}
+		</ul>
+	</div>
 {% endblock %}

@@ -8,6 +8,8 @@ class PageNotFound404:
 
 
 class Framework:
+    """Класс Framework - основа фреймворка"""
+
     def __init__(self, routes_obj, fronts_obj):
         self.routes_lst = routes_obj
         self.fronts_lst = fronts_obj
@@ -35,9 +37,10 @@ class Framework:
             view = self.routes_lst[path]
         else:
             view = PageNotFound404()
-        request = {}
+
         for front in self.fronts_lst:
             front(request)
+
         code, body = view(request)
         start_response(code, [('Content-Type', 'text/html')])
         return [body.encode('utf-8')]

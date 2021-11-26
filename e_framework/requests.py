@@ -1,5 +1,6 @@
 class GetRequests:
     """Класс для обработки GET-запросов."""
+
     @staticmethod
     def parse_input_data(data: str):
         result = {}
@@ -19,6 +20,7 @@ class GetRequests:
 
 class PostRequests:
     """Класс для обработки POST-запросов."""
+
     @staticmethod
     def parse_input_data(data: str):
         result = {}

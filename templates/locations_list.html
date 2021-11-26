@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}
+Список клиник
+{% endblock %}
+{% block style %}
+	{% include "inc-style.html" %}
+{% endblock %}
+{% block menu %}
+	{% include "inc-menu.html" %}
+{% endblock %}
+{% block body %}
+    <a href="/">назад</a>
+
+    <h1>Список районов</h1>
+    <ul>
+        {% for item in objects_list %}
+            <li>
+                {{item.name}}: <span>количество клиник: {{item.clinics_count()}}</span>
+            </li>
+        {% endfor %}
+    </ul>
+
+	<div>
+		<li><a href="/clinics-list/">Список клиник</a></li>
+		<li><a href="/create-clinic/">Создать клинику</a></li>
+	</div>
+{% endblock %}
