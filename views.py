@@ -2,9 +2,12 @@ from datetime import date
 
 from e_framework.templator import render
 from patterns.сreational_patterns import Engine, Logger
+from patterns.structural_patterns import AppRoute, Debug
 
 site = Engine()
 logger = Logger('main')
+
+routes = {}
 
 
 class NotFound404:
@@ -13,6 +16,7 @@ class NotFound404:
         return '404 WHAT', '404 PAGE Not Found'
 
 
+@AppRoute(routes=routes, url='/')
 class Index:
     """Контроллер: Главная страница."""
 
@@ -20,6 +24,7 @@ class Index:
         return '200 OK', render('index.html', objects_list=site.locations)
 
 
+@AppRoute(routes=routes, url='/about/')
 class About:
     """Контроллер: О проекте."""
 
@@ -27,6 +32,7 @@ class About:
         return '200 OK', render('about.html', data=request.get('data', None))
 
 
+@AppRoute(routes=routes, url='/visit-programs/')
 class VisitPrograms:
     """Контроллер: Расписания приёмов."""
 
@@ -34,6 +40,7 @@ class VisitPrograms:
         return '200 OK', render('visit_programs.html', data=date.today())
 
 
+@AppRoute(routes=routes, url='/create-clinic/')
 class CreateClinic:
     """Контроллер: Создание клиники."""
 
@@ -64,6 +71,7 @@ class CreateClinic:
                 return '200 OK', 'Список районов пуст.'
 
 
+@AppRoute(routes=routes, url='/create-location/')
 class CreateLocation:
     """Контроллер: Создание района."""
 
@@ -88,6 +96,7 @@ class CreateLocation:
             return '200 OK', render('create_location.html', locations=locations)
 
 
+@AppRoute(routes=routes, url='/clinics-list/')
 class ClinicsList:
     """Контроллер: Список клиник."""
 
@@ -101,6 +110,7 @@ class ClinicsList:
             return '200 OK', 'Список клиник пуст.'
 
 
+@AppRoute(routes=routes, url='/locations-list/')
 class LocationsList:
     """Контроллер: Список районов."""
 
@@ -109,6 +119,7 @@ class LocationsList:
         return '200 OK', render('locations_list.html', objects_list=site.locations)
 
 
+@AppRoute(routes=routes, url='/copy-clinic/')
 class CopyClinic:
     """Контроллер: Копирование клиники."""
 
