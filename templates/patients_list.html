@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}
+Создание пациента
+{% endblock %}
+{% block style %}
+	{% include "inc-style.html" %}
+{% endblock %}
+{% block menu %}
+	{% include "inc-menu.html" %}
+{% endblock %}
+{% block body %}
+	<div>
+		<li>
+			<a href="/create-patient/">Создать пациента</a>
+		</li>
+		<li>
+			<a href="/add-patient/">Записать пациента на приём</a>
+		</li>
+	</div>
+    <h1>Список пациентов</h1>
+    <div>
+
+        {% for item in objects_list %}
+        <li>
+            {{item.name}}
+            {% for clinic in item.clinics %}
+                {{clinic.name}}
+            {% endfor %}
+        </li>
+        {% endfor %}
+    </div>
+{% endblock %}

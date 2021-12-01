@@ -1,11 +1,13 @@
 import copy
 import datetime
 import quopri
+from .behavioral_patterns import ConsoleWriter, Subject
 
 
 # абстрактный пользователь
 class User:
-    pass
+    def __init__(self, name):
+        self.name = name
 
 
 # врач
@@ -15,7 +17,9 @@ class Doctor(User):
 
 # пациент
 class Patient(User):
-    pass
+    def __init__(self, name):
+        self.clinics = []
+        super().__init__(name)
 
 
 # порождающий паттерн Абстрактная фабрика - фабрика пользователей
@@ -27,8 +31,8 @@ class UserFactory:
 
     # порождающий паттерн Фабричный метод
     @classmethod
-    def create(cls, type_):
-        return cls.types[type_]()
+    def create(cls, type_, name):
+        return cls.types[type_](name)
 
 
 # порождающий паттерн Прототип - Клиника
@@ -39,11 +43,21 @@ class ClinicPrototype:
         return copy.deepcopy(self)
 
 
-class Clinic(ClinicPrototype):
+class Clinic(ClinicPrototype, Subject):
     def __init__(self, name, location):
         self.name = name
         self.location = location
         self.location.clinics.append(self)
+        self.patients = []
+        super().__init__()
+
+    def __getitem__(self, item):
+        return self.patients[item]
+
+    def add_patient(self, patient: Patient):
+        self.patients.append(patient)
+        patient.clinics.append(self)
+        self.notify()
 
 
 # Государственная клиника
@@ -96,8 +110,8 @@ class Engine:
         self.locations = []
 
     @staticmethod
-    def create_user(type_):
-        return UserFactory.create(type_)
+    def create_user(type_, name):
+        return UserFactory.create(type_, name)
 
     @staticmethod
     def create_location(name, location=None):
@@ -119,6 +133,11 @@ class Engine:
             if item.name == name:
                 return item
         return None
+
+    def get_patient(self, name) -> Patient:
+        for item in self.patients:
+            if item.name == name:
+                return item
 
     @staticmethod
     def decode_value(val):
@@ -147,10 +166,10 @@ class SingletonByName(type):
 
 
 class Logger(metaclass=SingletonByName):
-
-    def __init__(self, name):
+    def __init__(self, name, writer=ConsoleWriter()):
         self.name = name
+        self.writer = writer
 
-    @staticmethod
-    def log(text):
-        print(f'{datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}, {__name__} - ', text)
+    def log(self, text):
+        text = f'log---> {text}'
+        self.writer.write(text)

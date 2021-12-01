@@ -1,17 +1,26 @@
 from datetime import date
 
 from e_framework.templator import render
-from patterns.сreational_patterns import Engine, Logger
+from patterns.creational_patterns import Engine, Logger
 from patterns.structural_patterns import AppRoute, Debug
+from patterns.behavioral_patterns import (EmailNotifier,
+                                          SmsNotifier,
+                                          ListView,
+                                          CreateView,
+                                          BaseSerializer)
 
 site = Engine()
 logger = Logger('main')
+email_notifier = EmailNotifier()
+sms_notifier = SmsNotifier()
 
 routes = {}
 
 
 class NotFound404:
     """Контроллер: Страница не найдена."""
+
+    @Debug(name='NotFound404')
     def __call__(self, request):
         return '404 WHAT', '404 PAGE Not Found'
 
@@ -20,6 +29,7 @@ class NotFound404:
 class Index:
     """Контроллер: Главная страница."""
 
+    @Debug(name='Index')
     def __call__(self, request):
         return '200 OK', render('index.html', objects_list=site.locations)
 
@@ -28,14 +38,16 @@ class Index:
 class About:
     """Контроллер: О проекте."""
 
+    @Debug(name='About')
     def __call__(self, request):
-        return '200 OK', render('about.html', data=request.get('data', None))
+        return '200 OK', render('about.html')
 
 
 @AppRoute(routes=routes, url='/visit-programs/')
 class VisitPrograms:
     """Контроллер: Расписания приёмов."""
 
+    @Debug(name='VisitPrograms')
     def __call__(self, request):
         return '200 OK', render('visit_programs.html', data=date.today())
 
@@ -46,6 +58,7 @@ class CreateClinic:
 
     location_id = -1
 
+    @Debug(name='CreateClinic')
     def __call__(self, request):
         if request['method'] == 'POST':
             data = request['data']
@@ -57,6 +70,8 @@ class CreateClinic:
                 location = site.find_location_by_id(int(self.location_id))
 
                 clinic = site.create_clinic('state', name, location)
+                clinic.observers.append(email_notifier)
+                clinic.observers.append(sms_notifier)
                 site.clinics.append(clinic)
 
             return '200 OK', render('clinics_list.html', objects_list=location.clinics,
@@ -75,6 +90,7 @@ class CreateClinic:
 class CreateLocation:
     """Контроллер: Создание района."""
 
+    @Debug(name='CreateLocation')
     def __call__(self, request):
         if request['method'] == 'POST':
             data = request['data']
@@ -100,6 +116,7 @@ class CreateLocation:
 class ClinicsList:
     """Контроллер: Список клиник."""
 
+    @Debug(name='ClinicsList')
     def __call__(self, request):
         logger.log('Вызван список клиник.')
         try:
@@ -114,6 +131,7 @@ class ClinicsList:
 class LocationsList:
     """Контроллер: Список районов."""
 
+    @Debug(name='LocationsList')
     def __call__(self, request):
         logger.log('Вызван список районов.')
         return '200 OK', render('locations_list.html', objects_list=site.locations)
@@ -123,6 +141,7 @@ class LocationsList:
 class CopyClinic:
     """Контроллер: Копирование клиники."""
 
+    @Debug(name='CopyClinic')
     def __call__(self, request):
         request_params = request['request_params']
 
@@ -138,3 +157,46 @@ class CopyClinic:
             return '200 OK', render('clinics_list.html', objects_list=site.clinics)
         except KeyError:
             return '200 OK', 'Список клиник пуст.'
+
+
+@AppRoute(routes=routes, url='/patients-list/')
+class PatientsListView(ListView):
+    queryset = site.patients
+    template_name = 'patients_list.html'
+
+
+@AppRoute(routes=routes, url='/create-patient/')
+class PatientCreateView(CreateView):
+    template_name = 'create_patient.html'
+
+    def create_obj(self, data: dict):
+        name = data['name']
+        name = site.decode_value(name)
+        new_obj = site.create_user('patient', name)
+        site.patients.append(new_obj)
+
+
+@AppRoute(routes=routes, url='/add-patient/')
+class AddPatientToVisitCreateView(CreateView):
+    template_name = 'add_patient.html'
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        context['clinics'] = site.clinics
+        context['patients'] = site.patients
+        return context
+
+    def create_obj(self, data: dict):
+        print(data)
+        clinic_name = site.decode_value(data['clinic_name'])
+        clinic = site.get_clinic(clinic_name)
+        patient_name = site.decode_value(data['patient_name'])
+        patient = site.get_patient(patient_name)
+        clinic.add_patient(patient)
+
+
+@AppRoute(routes=routes, url='/api/')
+class CourseApi:
+    @Debug(name='CourseApi')
+    def __call__(self, request):
+        return '200 OK', BaseSerializer(site.clinics).save()
